@@ -1,0 +1,226 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/model-hosting-budget/workload-v1.schema.json",
+  "title": "Model Hosting Budget workload v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "requestGroups", "models", "targets"],
+  "properties": {
+    "schemaVersion": { "const": "hosting-budget.workload.v1" },
+    "title": { "type": "string", "minLength": 1 },
+    "requestGroups": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "count", "tokens"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "count": { "type": "integer", "minimum": 1 },
+          "tokens": { "type": "integer", "minimum": 1 }
+        }
+      }
+    },
+    "models": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "architecture", "weightGroupsBytes", "attention", "provenance"],
+        "allOf": [
+          {
+            "if": { "properties": { "architecture": { "const": "dense_gqa" } }, "required": ["architecture"] },
+            "then": {
+              "properties": {
+                "weightGroupsBytes": { "properties": { "routed": { "const": 0 } } },
+                "attention": {
+                  "required": ["kvHeads", "headDim"],
+                  "not": {
+                    "anyOf": [
+                      { "required": ["kvLatentDim"] },
+                      { "required": ["ropeDim"] },
+                      { "required": ["cacheBytesPerToken"] },
+                      { "required": ["routedExperts"] }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          {
+            "if": { "properties": { "architecture": { "const": "mla_moe" } }, "required": ["architecture"] },
+            "then": {
+              "properties": {
+                "attention": {
+                  "required": ["kvLatentDim", "ropeDim"],
+                  "not": {
+                    "anyOf": [
+                      { "required": ["kvHeads"] },
+                      { "required": ["headDim"] }
+                    ]
+                  },
+                  "allOf": [
+                    {
+                      "if": { "properties": { "kvCacheDtype": { "const": "fp8" } }, "required": ["kvCacheDtype"] },
+                      "then": { "required": ["cacheBytesPerToken"] }
+                    }
+                  ]
+                }
+              },
+              "allOf": [
+                {
+                  "if": {
+                    "properties": {
+                      "weightGroupsBytes": {
+                        "properties": { "routed": { "minimum": 1 } },
+                        "required": ["routed"]
+                      }
+                    },
+                    "required": ["weightGroupsBytes"]
+                  },
+                  "then": {
+                    "properties": {
+                      "attention": { "required": ["routedExperts"] }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "name": { "type": "string", "minLength": 1 },
+          "architecture": { "enum": ["dense_gqa", "mla_moe"] },
+          "notes": { "type": "string", "minLength": 1 },
+          "weightGroupsBytes": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["shared", "routed", "replicated"],
+            "properties": {
+              "shared": { "type": "integer", "minimum": 0 },
+              "routed": { "type": "integer", "minimum": 0 },
+              "replicated": { "type": "integer", "minimum": 0 }
+            }
+          },
+          "attention": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["layers", "attentionHeads", "kvCacheDtype"],
+            "properties": {
+              "layers": { "type": "integer", "minimum": 1 },
+              "attentionHeads": { "type": "integer", "minimum": 1 },
+              "kvCacheDtype": { "enum": ["bf16", "fp8"] },
+              "kvHeads": { "type": "integer", "minimum": 1 },
+              "headDim": { "type": "integer", "minimum": 1 },
+              "kvLatentDim": { "type": "integer", "minimum": 1 },
+              "ropeDim": { "type": "integer", "minimum": 0 },
+              "cacheBytesPerToken": { "type": "integer", "minimum": 1 },
+              "routedExperts": { "type": "integer", "minimum": 1 }
+            }
+          },
+          "provenance": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["kind"],
+              "properties": {
+                "kind": { "type": "string", "minLength": 1 },
+                "reference": { "type": "string", "minLength": 1 },
+                "license": { "type": "string", "minLength": 1 },
+                "notes": { "type": "string", "minLength": 1 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "targets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "hardware", "runtime", "layout", "budget"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "name": { "type": "string", "minLength": 1 },
+          "hardware": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "name", "gpuMemoryBytes", "gpusPerNode"],
+            "properties": {
+              "id": { "type": "string", "minLength": 1 },
+              "name": { "type": "string", "minLength": 1 },
+              "gpuMemoryBytes": { "type": "integer", "minimum": 1 },
+              "gpusPerNode": { "type": "integer", "minimum": 1 }
+            }
+          },
+          "runtime": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "name", "supportedArchitectures", "kvCacheDtypes", "dcpSupported", "measured"],
+            "properties": {
+              "id": { "type": "string", "minLength": 1 },
+              "name": { "type": "string", "minLength": 1 },
+              "supportedArchitectures": { "type": "array", "items": { "enum": ["dense_gqa", "mla_moe"] } },
+              "kvCacheDtypes": { "type": "array", "items": { "enum": ["bf16", "fp8"] } },
+              "dcpSupported": { "type": "boolean" },
+              "measured": { "type": "boolean" },
+              "notes": { "type": "string", "minLength": 1 },
+              "observations": { "type": "array" }
+            }
+          },
+          "layout": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["tensorParallel", "dataParallel", "pipelineParallel", "decodeContextParallel"],
+            "properties": {
+              "tensorParallel": { "type": "integer", "minimum": 1 },
+              "dataParallel": { "type": "integer", "minimum": 1 },
+              "pipelineParallel": { "type": "integer", "minimum": 1 },
+              "decodeContextParallel": { "type": "integer", "minimum": 1 }
+            }
+          },
+          "budget": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["runtimeReserveBytes", "deviceReserveFraction"],
+            "properties": {
+              "runtimeReserveBytes": { "type": "integer", "minimum": 0 },
+              "deviceReserveFraction": { "type": "string", "pattern": "^(0|0\\.[0-9]+)$" }
+            }
+          },
+          "quotes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id", "provider", "asOf", "unit", "purchaseTerm"],
+              "properties": {
+                "id": { "type": "string", "minLength": 1 },
+                "provider": { "type": "string", "minLength": 1 },
+                "asOf": { "type": "string", "minLength": 1 },
+                "unit": { "enum": ["per_gpu_hour", "per_node_hour"] },
+                "amountUsd": {
+                  "oneOf": [
+                    { "type": "string", "pattern": "^[0-9]+(\\.[0-9]+)?$" },
+                    { "type": "null" }
+                  ]
+                },
+                "purchaseTerm": { "type": "string", "minLength": 1 },
+                "region": { "type": "string", "minLength": 1 },
+                "source": { "type": "string", "minLength": 1 },
+                "condition": { "type": "string", "minLength": 1 },
+                "missingReason": { "type": "string", "minLength": 1 }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

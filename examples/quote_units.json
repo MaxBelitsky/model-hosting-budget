@@ -1,0 +1,136 @@
+{
+  "schemaVersion": "hosting-budget.workload.v1",
+  "title": "Synthetic quote unit normalization",
+  "requestGroups": [
+    {
+      "name": "small",
+      "count": 1,
+      "tokens": 1024
+    }
+  ],
+  "models": [
+    {
+      "id": "synthetic-small-gqa",
+      "name": "Synthetic Small GQA",
+      "architecture": "dense_gqa",
+      "weightGroupsBytes": {
+        "shared": 1000000000,
+        "routed": 0,
+        "replicated": 0
+      },
+      "attention": {
+        "layers": 2,
+        "attentionHeads": 8,
+        "kvHeads": 2,
+        "headDim": 64,
+        "kvCacheDtype": "bf16"
+      },
+      "provenance": [
+        {
+          "kind": "synthetic",
+          "reference": "examples/quote_units.json",
+          "license": "Apache-2.0"
+        }
+      ]
+    }
+  ],
+  "targets": [
+    {
+      "id": "per-gpu-8gpu-node",
+      "name": "Per-GPU quote on an 8-GPU node",
+      "hardware": {
+        "id": "synthetic-node-a",
+        "name": "Synthetic 80GB A",
+        "gpuMemoryBytes": 80000000000,
+        "gpusPerNode": 8
+      },
+      "runtime": {
+        "id": "synthetic-vllm",
+        "name": "Synthetic vLLM-compatible runtime",
+        "supportedArchitectures": ["dense_gqa"],
+        "kvCacheDtypes": ["bf16"],
+        "dcpSupported": true,
+        "measured": false
+      },
+      "layout": {
+        "tensorParallel": 2,
+        "dataParallel": 1,
+        "pipelineParallel": 1,
+        "decodeContextParallel": 1
+      },
+      "budget": {
+        "runtimeReserveBytes": 1000000000,
+        "deviceReserveFraction": "0.10"
+      },
+      "quotes": [
+        {
+          "id": "per-gpu-node-a",
+          "provider": "GPU Metered Cloud",
+          "asOf": "2026-09-10",
+          "unit": "per_gpu_hour",
+          "amountUsd": "2.00",
+          "purchaseTerm": "synthetic on-demand, whole-node bundle",
+          "source": "examples/quote_units.json"
+        }
+      ]
+    },
+    {
+      "id": "per-node-8gpu-node",
+      "name": "Per-node quote on an 8-GPU node",
+      "hardware": {
+        "id": "synthetic-node-b",
+        "name": "Synthetic 80GB B",
+        "gpuMemoryBytes": 80000000000,
+        "gpusPerNode": 8
+      },
+      "runtime": {
+        "id": "synthetic-vllm",
+        "name": "Synthetic vLLM-compatible runtime",
+        "supportedArchitectures": ["dense_gqa"],
+        "kvCacheDtypes": ["bf16"],
+        "dcpSupported": true,
+        "measured": false
+      },
+      "layout": {
+        "tensorParallel": 2,
+        "dataParallel": 1,
+        "pipelineParallel": 1,
+        "decodeContextParallel": 1
+      },
+      "budget": {
+        "runtimeReserveBytes": 1000000000,
+        "deviceReserveFraction": "0.10"
+      },
+      "quotes": [
+        {
+          "id": "per-node-b",
+          "provider": "Node Price Cloud",
+          "asOf": "2026-09-10",
+          "unit": "per_node_hour",
+          "amountUsd": "15.00",
+          "purchaseTerm": "synthetic on-demand, whole-node bundle",
+          "source": "examples/quote_units.json"
+        },
+        {
+          "id": "conditional-b",
+          "provider": "Conditional Cloud",
+          "asOf": "2026-09-10",
+          "unit": "per_node_hour",
+          "amountUsd": "12.00",
+          "purchaseTerm": "synthetic restricted preview",
+          "condition": "requires manual access approval",
+          "source": "examples/quote_units.json"
+        },
+        {
+          "id": "missing-b",
+          "provider": "Quote Only Cloud",
+          "asOf": "2026-09-10",
+          "unit": "per_node_hour",
+          "purchaseTerm": "quote required",
+          "missingReason": "public hourly amount not published",
+          "source": "examples/quote_units.json"
+        }
+      ]
+    }
+  ]
+}

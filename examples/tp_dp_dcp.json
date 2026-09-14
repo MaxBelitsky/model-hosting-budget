@@ -1,0 +1,129 @@
+{
+  "schemaVersion": "hosting-budget.workload.v1",
+  "title": "Synthetic TP DP DCP comparison",
+  "requestGroups": [
+    {
+      "name": "equal-long-requests",
+      "count": 8,
+      "tokens": 100096
+    }
+  ],
+  "models": [
+    {
+      "id": "synthetic-mla-moe",
+      "name": "Synthetic MLA MoE",
+      "architecture": "mla_moe",
+      "weightGroupsBytes": {
+        "shared": 80000000000,
+        "routed": 160000000000,
+        "replicated": 4000000000
+      },
+      "attention": {
+        "layers": 2,
+        "attentionHeads": 16,
+        "kvLatentDim": 512,
+        "ropeDim": 128,
+        "cacheBytesPerToken": 656,
+        "kvCacheDtype": "fp8",
+        "routedExperts": 16
+      },
+      "provenance": [
+        {
+          "kind": "synthetic",
+          "reference": "examples/tp_dp_dcp.json",
+          "license": "Apache-2.0",
+          "notes": "Packed FP8 MLA width is declared explicitly for the synthetic runtime layout."
+        }
+      ]
+    }
+  ],
+  "targets": [
+    {
+      "id": "tp4-dp1-dcp1",
+      "name": "TP4 DP1 DCP1",
+      "hardware": {
+        "id": "synthetic-90gb",
+        "name": "Synthetic 90GB",
+        "gpuMemoryBytes": 90000000000,
+        "gpusPerNode": 4
+      },
+      "runtime": {
+        "id": "synthetic-vllm-mla",
+        "name": "Synthetic MLA runtime",
+        "supportedArchitectures": ["mla_moe"],
+        "kvCacheDtypes": ["fp8"],
+        "dcpSupported": true,
+        "measured": false
+      },
+      "layout": {
+        "tensorParallel": 4,
+        "dataParallel": 1,
+        "pipelineParallel": 1,
+        "decodeContextParallel": 1
+      },
+      "budget": {
+        "runtimeReserveBytes": 4000000000,
+        "deviceReserveFraction": "0.00"
+      },
+      "quotes": []
+    },
+    {
+      "id": "tp2-dp2-dcp1",
+      "name": "TP2 DP2 DCP1",
+      "hardware": {
+        "id": "synthetic-90gb",
+        "name": "Synthetic 90GB",
+        "gpuMemoryBytes": 90000000000,
+        "gpusPerNode": 4
+      },
+      "runtime": {
+        "id": "synthetic-vllm-mla",
+        "name": "Synthetic MLA runtime",
+        "supportedArchitectures": ["mla_moe"],
+        "kvCacheDtypes": ["fp8"],
+        "dcpSupported": true,
+        "measured": false
+      },
+      "layout": {
+        "tensorParallel": 2,
+        "dataParallel": 2,
+        "pipelineParallel": 1,
+        "decodeContextParallel": 1
+      },
+      "budget": {
+        "runtimeReserveBytes": 4000000000,
+        "deviceReserveFraction": "0.00"
+      },
+      "quotes": []
+    },
+    {
+      "id": "tp4-dp1-dcp4",
+      "name": "TP4 DP1 DCP4",
+      "hardware": {
+        "id": "synthetic-90gb",
+        "name": "Synthetic 90GB",
+        "gpuMemoryBytes": 90000000000,
+        "gpusPerNode": 4
+      },
+      "runtime": {
+        "id": "synthetic-vllm-mla",
+        "name": "Synthetic MLA runtime",
+        "supportedArchitectures": ["mla_moe"],
+        "kvCacheDtypes": ["fp8"],
+        "dcpSupported": true,
+        "measured": false
+      },
+      "layout": {
+        "tensorParallel": 4,
+        "dataParallel": 1,
+        "pipelineParallel": 1,
+        "decodeContextParallel": 4
+      },
+      "budget": {
+        "runtimeReserveBytes": 4000000000,
+        "deviceReserveFraction": "0.00"
+      },
+      "quotes": []
+    }
+  ]
+}

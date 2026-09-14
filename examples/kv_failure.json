@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "hosting-budget.workload.v1",
+  "title": "Synthetic KV cache failure",
+  "requestGroups": [
+    {
+      "name": "long-context-batch",
+      "count": 1,
+      "tokens": 7000064
+    }
+  ],
+  "models": [
+    {
+      "id": "synthetic-dense-gqa-10b",
+      "name": "Synthetic Dense GQA 10B",
+      "architecture": "dense_gqa",
+      "weightGroupsBytes": {
+        "shared": 10000000000,
+        "routed": 0,
+        "replicated": 0
+      },
+      "attention": {
+        "layers": 4,
+        "attentionHeads": 32,
+        "kvHeads": 8,
+        "headDim": 128,
+        "kvCacheDtype": "bf16"
+      },
+      "provenance": [
+        {
+          "kind": "synthetic",
+          "reference": "examples/kv_failure.json",
+          "license": "Apache-2.0",
+          "notes": "Invented dimensions for arithmetic demonstration."
+        }
+      ]
+    }
+  ],
+  "targets": [
+    {
+      "id": "one-gpu-40gb",
+      "name": "One synthetic 40GB GPU",
+      "hardware": {
+        "id": "synthetic-40gb",
+        "name": "Synthetic 40GB",
+        "gpuMemoryBytes": 40000000000,
+        "gpusPerNode": 1
+      },
+      "runtime": {
+        "id": "synthetic-vllm",
+        "name": "Synthetic vLLM-compatible runtime",
+        "supportedArchitectures": ["dense_gqa"],
+        "kvCacheDtypes": ["bf16"],
+        "dcpSupported": false,
+        "measured": false
+      },
+      "layout": {
+        "tensorParallel": 1,
+        "dataParallel": 1,
+        "pipelineParallel": 1,
+        "decodeContextParallel": 1
+      },
+      "budget": {
+        "runtimeReserveBytes": 4000000000,
+        "deviceReserveFraction": "0.10"
+      },
+      "quotes": [
+        {
+          "id": "synthetic-40gb-node",
+          "provider": "SyntheticCloud",
+          "asOf": "2026-09-10",
+          "unit": "per_node_hour",
+          "amountUsd": "3.00",
+          "purchaseTerm": "synthetic on-demand",
+          "source": "examples/kv_failure.json"
+        }
+      ]
+    }
+  ]
+}

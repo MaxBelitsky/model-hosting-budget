@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/model-hosting-budget/result-v1.schema.json",
+  "title": "Model Hosting Budget result v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["schemaVersion", "inputSchemaVersion", "metadata", "requestGroups", "evaluations", "cheapestByModel"],
+  "properties": {
+    "schemaVersion": { "const": "hosting-budget.result.v1" },
+    "inputSchemaVersion": { "const": "hosting-budget.workload.v1" },
+    "metadata": {
+      "type": "object",
+      "required": ["title", "offline", "analyticalAlpha", "inputSha256"],
+      "properties": {
+        "title": { "type": "string" },
+        "offline": { "const": true },
+        "analyticalAlpha": { "const": true },
+        "inputSha256": { "type": "string" }
+      }
+    },
+    "evaluations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["model", "target", "layout", "hardware", "runtime", "assumptions", "statuses", "reasons", "bytes", "weightBreakdown", "cacheBreakdown", "requestBins", "quotes"],
+        "properties": {
+          "statuses": {
+            "type": "object",
+            "required": ["compatibility", "capacity", "evidence", "cost"],
+            "properties": {
+              "compatibility": { "enum": ["pass", "fail"] },
+              "capacity": { "enum": ["fits", "tight", "exceeds", "unknown"] },
+              "evidence": { "const": "analytical_alpha" },
+              "cost": { "enum": ["priced", "conditional", "quote_missing", "no_qualifying_quote"] }
+            }
+          }
+        }
+      }
+    },
+    "cheapestByModel": { "type": "object" }
+  }
+}

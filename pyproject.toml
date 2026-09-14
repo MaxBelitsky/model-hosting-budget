@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "model-hosting-budget"
+version = "0.1.0"
+description = "Offline analytical-alpha GPU hosting memory and quote budget reports."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+authors = [{ name = "Model Hosting Budget contributors" }]
+keywords = ["llm", "gpu", "capacity", "hosting", "budget"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/MaxBelitsky/model-hosting-budget"
+Repository = "https://github.com/MaxBelitsky/model-hosting-budget"
+Issues = "https://github.com/MaxBelitsky/model-hosting-budget/issues"
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "build>=1", "jsonschema>=4"]
+
+[project.scripts]
+hosting-budget = "hosting_budget.cli:main"
+
+[tool.setuptools.package-data]
+hosting_budget = ["data/*.json", "data/examples/*.json", "data/schemas/*.json"]
+
+[tool.setuptools.data-files]
+"share/model-hosting-budget/examples" = ["examples/*.json"]
+"share/model-hosting-budget/examples/expected" = ["examples/expected/*.md"]
+"share/model-hosting-budget/schemas" = ["schemas/*.json"]
+"share/model-hosting-budget/docs" = ["docs/*.md"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+pythonpath = ["src"]
